@@ -1,4 +1,4 @@
-# tapl_interpreter_rkt
+# tapl_interpreter_rkt types racketed
 SUMS (with unique typing)
 
 Syntactic forms
