@@ -1,0 +1,1 @@
+`(let ([x {record (color = 1) (sum = (sub1 10))}]) (record-ref (x sum)))
