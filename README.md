@@ -4,26 +4,27 @@ SUMS (with unique typing)
 Syntactic forms
 
 terms
+```
 t ::= ...                        
       ((inl t) as (T1 + T2))
 	  ((inr t) as (T1 + T2))
-
-values	  
+```
+values	
+```
 v ::= ...                       
       ((inl v) as (T1 + T2))
 	  ((inr v) as (T1 + T2))
-	  
-(break that line)
-
+```	  
 
 Evaluation rule
 
 E-CASEINL/R
+```
 case ((inl v0) as (T1 + T2)) of ((inl t1) as (T1 + T2))
                              or ((inr t2) as (T1 + T2))
 							 -> [x1 |-> v0]t1
 							 -> [x2 |-> v0]t2
-
+```
 E-INL
 ```
             t1 -> t1'
