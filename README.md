@@ -1,4 +1,7 @@
 # types racketed
+
+RECORDS
+
 SUMS (with unique typing)
 
 Syntactic forms
