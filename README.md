@@ -23,7 +23,7 @@ Evaluation rule
 
 E-CASEINL/R
 ```
-case ((inl v0) as (T1 + T2)) of ((inl t1) as (T1 + T2))
+case ((inl t0) as (T1 + T2)) of ((inl t1) as (T1 + T2))
                              or ((inr t2) as (T1 + T2))
 							 -> [x1 |-> v0]t1
 							 -> [x2 |-> v0]t2
@@ -57,3 +57,9 @@ T-INR
 ----------------------------------------
 Tao |- (inr t1) as (T1 + T2) : (T1 + T2)
 ```
+T-CASE
+```
+               Tao |- t0 : T1 + T2
+Tao, x1 : T1 |- t1 : T     Tao, x2 : T2 |- t2 : T
+--------------------------------------------------
+Tao |- case t0 of inl x1 => t1 | inr x2 => t2 : T
