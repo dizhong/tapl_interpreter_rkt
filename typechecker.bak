@@ -4,16 +4,11 @@
 (provide typecheck)
 
 #|
-07.11.16 assuming args is arg. You can only curry lambdas functions
+07/11 assuming args is arg. You can only curry lambdas functions
 07.14.16 moved typechecker here. Should've done it for the compiler class.
          would've made things so much easier (probably not).
          why when using match T gets transformed to whatever a's type is?
 07.15.16 Jeremy pointed out and fixed, like 3 or something cases
-         (lambda sum symbol and maybe some other stuff)
-07.28.16 Trying to finish up the change in sum then do the test thing and
-         write test cases.
-07.29.16 Actually, two branches of sum can only return the same type
-08.01.16 More Sum types. Need to write some tyerr cases
 |#
 
 ;Typecheck
@@ -33,21 +28,14 @@
         [`(,a as ,T)
          ;(pretty-print (format "as ~a" T))
          (match T
-           [`(,T1 + ,T2) ;sum
-            (pretty-print ((typecheck env) a))
-            (match ((typecheck env) a)
-              [`(,arg -> ,res) ;in branches check if left right correspond to T1 T2
-               (match a
-                 [`(inl ,t1) (if (equal? arg T1) T1 (error "inl branch type wrong"))]
-                 [`(inr ,t2) (if (equal? arg T2) T2 (error "inr branch type wrong"))])]
-              [`,res ;in t0 check if type is actually one of T1 T2
-               (if (or (equal? res T1) (equal? res T2))
-                   T
-                   (error 'typecheck "'ascribe' expects an ~a" T))])]
-           [`,T   ;I think there is a better way than this. first line of if 07/28
-            (if (equal? ((typecheck env) a) T)
+           [`(,T1 + ,T2)
+            (if (or (eqv? ((typecheck env) a) T1) (eqv? ((typecheck env) a) T2))
                 T
-                (error 'typecheck "'ascribe' expects an ~a" T))])];ascribe
+                (error 'typecheck "'ascribe' expects an ~a" T))]
+           [`,T   ;I think there is a better way than this. first line of if
+            (if (eqv? ((typecheck env) a) T)
+                T
+                (error 'typecheck "'ascribe' expects an ~a" T))];ascribe
          ;why when using match T gets transformed to whatever a's type is?
         [`(,t . 1) (pretty-print (format "pair.1: ~a" exp))
          (match ((typecheck env) t)
@@ -62,18 +50,17 @@
                   l1
                   (map (lambda (x) ((typecheck env) x)) v1))}] ;record cf
         [`(record-ref (,records ,lj)) ;based on vector-ref in P423 07/12
-         (pretty-print (format "'record-ref: ~a"(get-record ((typecheck env) records) lj)))
          (get-record ((typecheck env) records) lj)] ;record
-        [`(inl ,t) ((typecheck env) t)]
+        [`(inl ,t as (,T1 + ,T2)) ((typecheck env) t)]
          ;sum really doubt if these two are right
-        [`(inr ,t) ((typecheck env) t)] ;sum +
-        [`(case ,v of (,t1 as ,sumT1) or (,t2 as ,sumT2))
+        [`(inr ,t as (,T1 + ,T2)) ((typecheck env) t)] ;sum +
+        [`(case ,v of ,t1 or ,t2)
          (let ([T0 ((typecheck env) v)])
-           (let ([T1 ((typecheck env) `(,t1 as ,sumT1))]);this is shaky
-             (let ([T2 ((typecheck env) `(,t2 as ,sumT2))]);this is shaky
-               (if (equal? T0 `(,T1 + ,T2))
-                   (last ((typecheck env) t1)) ;both branches return same b this is shaky
-                   (error (format "sum needs matching types ~a, ~a+~a" T0 T1 T2))))))] ;sum
+           (let ([T1 ((typecheck env) t1)])
+             (let ([T2 ((typecheck env) t2)])
+               (if (and (eqv? T0 T1) (eqv? T1 T2))
+                   T0
+                   (error (format "v and t of sum need matching cases ~a" exp))))))] ;sum
         [`(zero? ,e)
          (match ((typecheck env) e)
            ['Integer 'Boolean] ;think here should return a boolean instead of int 07/12
@@ -94,9 +81,9 @@
            (let ([new-env (cons (cons arg type) env)])
              (let ([bodyT ((typecheck new-env) body)])
                ;(cond [(equal? rT bodyT)
-                      (pretty-print bodyT)
+                      ;(pretty-print l-env)
                       ;(pretty-print `(,@(map cadr l-env) -> ,rT))
-                      `(,type -> ,bodyT)))])]
+                      `(,type -> ,rT)))])]
                      ;[else (error "mismatch in return type" bodyT rT)])))])] ;lambda
         [`(let ([,x ,e]) ,body) ;(pretty-print "let")
          (define T ((typecheck env) e)) 

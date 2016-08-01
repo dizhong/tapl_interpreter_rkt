@@ -17,10 +17,6 @@
          errors. Sum & lambda.
          WHY DID'T I REALIZE TAPL HAS ALL THE TYPE CHECKING RULES
 07.14.16 Moved typechecker and helpers to a new file.
-07.28.16 Need to update sum and ascription maybe.
-07.29.16 So in Sum type. Should the input just be a direction of which type to retrieve
-         or should it be something you get into lambda functions?
-08.01.16 Need furthur modification corresponds to the change in typechecker for sum
 |#
 
 ;Interpreter
@@ -38,7 +34,7 @@
       [`(zero? ,e) (zero? (value-of e env))] 
       [`(sub1 ,e) (sub1 (value-of e env))]
       [`(* ,e1 ,e2) (* (value-of e1 env) (value-of e2 env))]
-      [`(lambda ((,id : ,type)) ,body)
+      [`(lambda ((,id : ,type)) : ,rT ,body)
        (lambda (x)     ;abstr?
          (value-of body (lambda (var)
                           (if (eqv? id var)
@@ -70,10 +66,12 @@
       ;originaly messes up `(,rator ,rand) so changed from `(,records ,lj) to current
       [`(inl ,t) `(inl ,(value-of t env))] ;sum
       [`(inr ,t) `(inr ,(value-of t env))] ;sum
-      [`(case ,v of (,e1 as ,t) or (,e2 as ,t))
-       (match (value-of v env)
-         [`(inl ,v^) (value-of `(,e1 ,v^) env)]
-         [`(inr ,v^) (value-of `(,e2 ,v^) env)])] ;sum
+      [`(case ,t of (inl (lambda (,x1) : ,rT1 ,t1))
+                 or (inr (lambda (,x2) : ,rT2 ,t2))) ;also want to shrink this
+       (match (value-of t env)
+         [`(inl ,v) (value-of `((lambda (,x1) : ,rT1 ,t1) ,v) env)]
+         [`(inr ,v) (value-of `((lambda (,x2) : ,rT2 ,t2) ,v) env)])] ;sum
+      ;OMG can't believe I stuck at this for like 2 hours. Differentiate inl inr!!!!!
       ;why doing (lambda ((,x1 : t1)) ...) wouldn't work? 07/13
       ;[`({,t1 ,t2 ...} . ,n)
       ;  (let ([a (value-of t1 env)])
@@ -84,7 +82,7 @@
       ;[`(isnil ,e) (let ([a (value-of e env)]) (if (eqv? '() a) #t #f))] ;list
        ;list
       [`(,rator ,rand)
-       ;(pretty-print (format "rator rand: ~a" exp))
+       (pretty-print (format "rator rand: ~a" exp))
        ((value-of rator env) (value-of rand env))] ;app
       [else (error (format "nothing matched: ~a" exp))]
       )))
