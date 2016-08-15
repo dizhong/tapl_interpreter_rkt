@@ -1,2 +1,0 @@
-`(case ((inr 1) (Boolean + Integer)) of ((lambda (x) x) as (Boolean + Integer))
-                                     or ((lambda (x) x) as (Boolean + Integer)))
