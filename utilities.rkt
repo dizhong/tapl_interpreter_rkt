@@ -1,5 +1,5 @@
 #lang racket
-(provide get-record get-record-helper lookup)
+(provide get-record get-record-helper lookup ass-ref)
 
 #|
 07.14.16 moved helpers here.
@@ -33,6 +33,16 @@
 	   (mcdr (car ls))]
 	  [else 
 	   (lookup x (cdr ls))])))
+
+(define ass-ref ;used to reassign reference locations
+  (lambda (x val ls)
+    (cond [(null? ls)
+	   (error "ass-ref failed for " x)]
+	  [(and (pair? (car ls)) (eq? x (car (car ls))))
+	   (cons (cons (car (car ls)) val) (cdr ls))]
+          ;not including mutable stuff
+	  [else 
+	   (cons (car ls)(ass-ref x val (cdr ls)))])))
 
 ;Running tests
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
