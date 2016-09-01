@@ -1,1 +1,1 @@
-`(let ([x (record-ref ({record (price = 9) (sum = (sub1 10))} sum))]) x)
+(let ([x (record-ref ({record (price = 9) (sum = (sub1 10))} sum))]) x)

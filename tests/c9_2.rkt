@@ -1,1 +1,1 @@
-`((lambda ((x : Integer)) : Boolean (zero? x)) ((pair 0 1) . 2))
+((lambda ((x : Integer)) (zero? x)) ((pair 0 1) . 2))

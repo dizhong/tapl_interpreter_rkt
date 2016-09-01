@@ -1,5 +1,4 @@
 #lang racket
-(require "interpreter.rkt")
 (require "utilities.rkt")
 (provide typecheck)
 
@@ -14,13 +13,15 @@
          write test cases.
 07.29.16 Actually, two branches of sum can only return the same type
 08.01.16 More Sum types. Need to write some tyerr cases
+08.15.16 Okay references
+08.16.16 Use the heap thing used in coloring algorithm to rewrite ref
 |#
 
 ;Typecheck
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define typecheck
-  (lambda (env)
+  (lambda (env ref)
     (lambda (exp)
       (match exp
         [(? number?) 'Integer] ;nat
@@ -34,8 +35,8 @@
          ;(pretty-print (format "as ~a" T))
          (match T
            [`(,T1 + ,T2) ;sum
-            (pretty-print ((typecheck env) a))
-            (match ((typecheck env) a)
+            (pretty-print ((typecheck env ref) a))
+            (match ((typecheck env ref) a)
               [`(,arg -> ,res) ;in branches check if left right correspond to T1 T2
                (match a
                  [`(inl ,t1) (if (equal? arg T1) T1 (error "inl branch type wrong"))]
@@ -45,46 +46,55 @@
                    T
                    (error 'typecheck "'ascribe' expects an ~a" T))])]
            [`,T   ;I think there is a better way than this. first line of if 07/28
-            (if (equal? ((typecheck env) a) T)
+            (if (equal? ((typecheck env ref) a) T)
                 T
                 (error 'typecheck "'ascribe' expects an ~a" T))])];ascribe
          ;why when using match T gets transformed to whatever a's type is?
         [`(,t . 1) (pretty-print (format "pair.1: ~a" exp))
-         (match ((typecheck env) t)
+         (match ((typecheck env ref) t)
            [`(Pair ,t1 ,t2) t1])] ;pair (in match returns a pair of types) 07/12
         [`(,t . 2)
-         (match ((typecheck env) t)
+         (match ((typecheck env ref) t)
            [`(Pair ,t1 ,t2) t2])] ;pair
-        [`(pair ,t1 ,t2) `(Pair ,((typecheck env) t1) ,((typecheck env) t2))] ;pair
+        [`(pair ,t1 ,t2) `(Pair ,((typecheck env ref) t1) ,((typecheck env ref) t2))] ;pair
         [`{record (,l1 = ,v1) ...} ;based on vector in P423 07/12
          ;(pretty-print "record cf")
          `{Record ,@(map (lambda (x y) `(,x = ,y))
                   l1
-                  (map (lambda (x) ((typecheck env) x)) v1))}] ;record cf
+                  (map (lambda (x) ((typecheck env ref) x)) v1))}] ;record cf
         [`(record-ref (,records ,lj)) ;based on vector-ref in P423 07/12
-         (pretty-print (format "'record-ref: ~a"(get-record ((typecheck env) records) lj)))
-         (get-record ((typecheck env) records) lj)] ;record
-        [`(inl ,t) ((typecheck env) t)]
-         ;sum really doubt if these two are right
-        [`(inr ,t) ((typecheck env) t)] ;sum +
+         (pretty-print (format "'record-ref: ~a"
+                               (get-record ((typecheck env ref) records) lj)))
+         (get-record ((typecheck env ref) records) lj)] ;record
+        [`(inl ,t) ((typecheck env ref) t)] ;sum really doubt if these two are right
+        [`(inr ,t) ((typecheck env ref) t)] ;sum +
         [`(case ,v of (,t1 as ,sumT1) or (,t2 as ,sumT2))
-         (let ([T0 ((typecheck env) v)])
-           (let ([T1 ((typecheck env) `(,t1 as ,sumT1))]);this is shaky
-             (let ([T2 ((typecheck env) `(,t2 as ,sumT2))]);this is shaky
+         (let ([T0 ((typecheck env ref) v)])
+           (let ([T1 ((typecheck env ref) `(,t1 as ,sumT1))]);this is shaky
+             (let ([T2 ((typecheck env ref) `(,t2 as ,sumT2))]);this is shaky
                (if (equal? T0 `(,T1 + ,T2))
-                   (last ((typecheck env) t1)) ;both branches return same b this is shaky
+                   (last ((typecheck env ref) t1))
+                   ;both branches return same b this is shaky
                    (error (format "sum needs matching types ~a, ~a+~a" T0 T1 T2))))))] ;sum
+        [`(loc ,v) `(Ref ,(lookup v ref))] ;ref loc
+        [`(ref ,t) `(Ref ,(lookup ((typecheck env ref) t) ref))] ;ref creation +modify heap
+        [`(! ,t) `(Ref ,(lookup ((typecheck env ref) t) ref))] ;ref deref
+        [`(,t1 := ,t2)
+         (if (equal? (lookup t1 ref) (typecheck t2 ref))
+             `(Ref ,(lookup t1 ref))
+             (error (format "reference assignment expects matching types ~a ~a" t1 t2)))]
+        ;ref ass
         [`(zero? ,e)
-         (match ((typecheck env) e)
+         (match ((typecheck env ref) e)
            ['Integer 'Boolean] ;think here should return a boolean instead of int 07/12
            [else (error 'typecheck "'zero?' expects an Integer ~a" e)])] ;zero?
         [`(sub1 ,e)
-         (match ((typecheck env) e)
+         (match ((typecheck env ref) e)
            ['Integer 'Integer]
            [else (error 'typecheck "'sub1' expects an Integer ~a" e)])] ;sub1
         [`(* ,e1 ,e2)
-         (match ((typecheck env) e1)
-           ['Integer (match ((typecheck env) e2)
+         (match ((typecheck env ref) e1)
+           ['Integer (match ((typecheck env ref) e2)
                        ['Integer 'Integer]
                        [else (error 'typecheck "'*' expects an Integer ~a" e2)])]
            [else (error 'typecheck "'*' expects an Integer ~a" e1)])];*
@@ -92,36 +102,38 @@
          (match args 
            [`[,arg : ,type]
            (let ([new-env (cons (cons arg type) env)])
-             (let ([bodyT ((typecheck new-env) body)])
+             (let ([bodyT ((typecheck new-env ref) body)])
                ;(cond [(equal? rT bodyT)
                       (pretty-print bodyT)
                       ;(pretty-print `(,@(map cadr l-env) -> ,rT))
                       `(,type -> ,bodyT)))])]
                      ;[else (error "mismatch in return type" bodyT rT)])))])] ;lambda
         [`(let ([,x ,e]) ,body) ;(pretty-print "let")
-         (define T ((typecheck env) e)) 
+         (define T ((typecheck env ref) e)) 
          (define new-env (cons (cons x T) env))
          ;(pretty-print "got to let")
-         ((typecheck new-env) body)] ;let
+         ((typecheck new-env ref) body)] ;let
         [`(if ,cnd ,thn ,els)
-         (match ((typecheck env) cnd)
-           ;(pretty-print (format "if: ~a" ((typecheck env) cnd))) ;07/13
-           ['Boolean (let ([thnT ((typecheck env) thn)] [elsT ((typecheck env) els)])
+         (match ((typecheck env ref) cnd)
+           ;(pretty-print (format "if: ~a" ((typecheck env ref) cnd))) ;07/13
+           ['Boolean (let ([thnT ((typecheck env ref) thn)]
+                           [elsT ((typecheck env ref) els)])
                        (if (eq? thnT elsT)
                            thnT
                            (error 'typecheck "'if' requires matching types ~a" thnT)))]
            [else (error 'typecheck "'if' expects a Boolean ~a" cnd)])] ;if
         [`(,function ,args) 
-         (let ([f-t ((typecheck env) function)])
+         (let ([f-t ((typecheck env ref) function)])
            (match f-t
              ;(pretty-print (format "rator rand: ~a" f-t) ;07/12
              [`(,arg-types -> ,return-type)
-              (let ([passed-arg-types ((typecheck env) args)])
+              (let ([passed-arg-types ((typecheck env ref) args)])
                 ;(pretty-print arg-types) (pretty-print passed-arg-types) ;07/12
                 (if (not (equal? arg-types passed-arg-types))
                     (error "incorrect types in argument(s) to" function)
                     return-type))]
              ;07/12/16 if want to revert back to multiple args, change to
-             ;(map (typecheck env) args) and add a few "..."s here and there
+             ;(map (typecheck env ref) args) and add a few "..."s here and there
              [else (error "something went wrong in function ~a" function)]))];app
+        [`(program ,expr ...) ((typecheck env ref) expr)]
         [else (error (format "nothing matched: ~a" exp))]))))

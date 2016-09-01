@@ -1,4 +1,4 @@
-`(let ([x {record (price = 8) (other = #f)}])
+(let ([x {record (price = 8) (other = #f)}])
   (case ((inl x) as ((Record (price = Integer) (other = Boolean)) + (Pair Integer Boolean)))
     of ((inl (lambda ((x1 : (Record (price = Integer) (other = Boolean))))
               (record-ref (x1 price))))

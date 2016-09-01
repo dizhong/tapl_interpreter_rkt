@@ -1,5 +1,7 @@
 #lang racket
 (require "utilities.rkt")
+(require "typechecker.rkt")
+(require "run-tests.rkt")
 (provide value-of)
 
 #|
@@ -63,8 +65,8 @@
       [`(pair ,t1 ,t2) `(pair ,(value-of t1 env ref) ,(value-of t2 env ref))] ;pair 
       [`{record (,l1 = ,v1) ...} ;(pretty-print "got to record cf") (pretty-print exp)
        `{record ,@(map (lambda (x y) `(,x = ,y))
-                l1
-                (map (lambda (x) (value-of x env ref)) v1))}];record creation form 
+                       l1
+                       (map (lambda (x) (value-of x env ref)) v1))}];record creation form 
       [`(record-ref (,records ,lj))
        (pretty-print (format "record-ref: ~a" records))
        (get-record (value-of records env ref) lj)] ;record
@@ -86,5 +88,11 @@
       [`(,rator ,rand)
        ;(pretty-print (format "rator rand: ~a" exp))
        ((value-of rator env ref) (value-of rand env ref))] ;app
+      [`(program ,expr ...) (value-of expr env ref)]
       [else (error (format "nothing matched: ~a" exp))]
       )))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(interp-tests "interpreter" (typecheck '() '()) value-of "c9" (range 1 8))
