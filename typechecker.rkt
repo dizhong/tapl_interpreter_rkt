@@ -3,21 +3,6 @@
 ;(require "run-tests.rkt")
 (provide typecheck)
 
-#|
-07.11.16 assuming args is arg. You can only curry lambdas functions
-07.14.16 moved typechecker here. Should've done it for the compiler class.
-         would've made things so much easier (probably not).
-         why when using match T gets transformed to whatever a's type is?
-07.15.16 Jeremy pointed out and fixed, like 3 or something cases
-         (lambda sum symbol and maybe some other stuff)
-07.28.16 Trying to finish up the change in sum then do the test thing and
-         write test cases.
-07.29.16 Actually, two branches of sum can only return the same type
-08.01.16 More Sum types. Need to write some tyerr cases
-08.15.16 Okay references
-08.16.16 Use the heap thing used in coloring algorithm to rewrite ref
-|#
-
 ;Typecheck
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

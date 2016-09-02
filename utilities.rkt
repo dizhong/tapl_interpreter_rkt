@@ -1,11 +1,6 @@
 #lang racket
 (provide get-record get-record-helper lookup ass-ref)
 
-#|
-07.14.16 moved helpers here.
-07.15.16 trying to add testing-related stuff
-|#
-
 ;Helpers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

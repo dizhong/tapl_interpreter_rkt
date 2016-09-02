@@ -2,29 +2,6 @@
 (require "utilities.rkt")
 (provide value-of)
 
-#|
-06.29.16 This is value-of, not small step. to update: pair, record, sum. testing.
-07.06.16 ??? sum. ugh.
-07.07.16 ??? todo-list: typechecking, string, type alias
-07.08.16 uh, stream-line testing, ty, & others; change all a/e/t to one thing
-07.11.16 ???? lambda??? pair record sum all too simple?
-07.12.16 uh. buncha stuff. basically tryta finish+test typechecker; soo when GRE?!
-         think I added ascribe today
-         modified typechecking for lambda
-         changed record (to record-ref, added label{record ...}, stuff like that)
-         do I add a label to sum type tho???????????????????
-07.13.16 ugh. Gotten to the point where updating one thing results into a million
-         errors. Sum & lambda.
-         WHY DID'T I REALIZE TAPL HAS ALL THE TYPE CHECKING RULES
-07.14.16 Moved typechecker and helpers to a new file.
-07.28.16 Need to update sum and ascription maybe.
-07.29.16 So in Sum type. Should the input just be a direction of which type to retrieve
-         or should it be something you get into lambda functions?
-08.01.16 Need furthur modification corresponds to the change in typechecker for sum
-08.15.16 Okay references.
-         How do I test Sequencing?
-|#
-
 ;Interpreter
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
