@@ -138,7 +138,3 @@
              ;(map (typecheck env ref) args) and add a few "..."s here and there
              [else (error "something went wrong in function ~a" function)]))];app
         [else (error (format "nothing matched: ~a" exp))]))))
-
-;(test-typecheck (typecheck '() '()) `(program (let ([p1 (pair #f 2)])
-;   (let ([p2 (pair (* 5 6) (if (p1 . 1) 3 4))])
-;     (p2 . 2)))))
