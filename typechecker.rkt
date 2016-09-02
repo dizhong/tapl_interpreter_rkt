@@ -1,5 +1,6 @@
 #lang racket
 (require "utilities.rkt")
+;(require "run-tests.rkt")
 (provide typecheck)
 
 #|
@@ -35,7 +36,7 @@
          ;(pretty-print (format "as ~a" T))
          (match T
            [`(,T1 + ,T2) ;sum
-            (pretty-print ((typecheck env ref) a))
+            ;(pretty-print ((typecheck env ref) a))
             (match ((typecheck env ref) a)
               [`(,arg -> ,res) ;in branches check if left right correspond to T1 T2
                (match a
@@ -50,7 +51,7 @@
                 T
                 (error 'typecheck "'ascribe' expects an ~a" T))])];ascribe
          ;why when using match T gets transformed to whatever a's type is?
-        [`(,t . 1) (pretty-print (format "pair.1: ~a" exp))
+        [`(,t . 1) ;(pretty-print (format "pair.1: ~a" exp))
          (match ((typecheck env ref) t)
            [`(Pair ,t1 ,t2) t1])] ;pair (in match returns a pair of types) 07/12
         [`(,t . 2)
@@ -63,8 +64,8 @@
                   l1
                   (map (lambda (x) ((typecheck env ref) x)) v1))}] ;record cf
         [`(record-ref (,records ,lj)) ;based on vector-ref in P423 07/12
-         (pretty-print (format "'record-ref: ~a"
-                               (get-record ((typecheck env ref) records) lj)))
+         ;(pretty-print (format "'record-ref: ~a"
+         ;                      (get-record ((typecheck env ref) records) lj)))
          (get-record ((typecheck env ref) records) lj)] ;record
         [`(inl ,t) ((typecheck env ref) t)] ;sum really doubt if these two are right
         [`(inr ,t) ((typecheck env ref) t)] ;sum +
@@ -104,7 +105,7 @@
            (let ([new-env (cons (cons arg type) env)])
              (let ([bodyT ((typecheck new-env ref) body)])
                ;(cond [(equal? rT bodyT)
-                      (pretty-print bodyT)
+                      ;(pretty-print bodyT)
                       ;(pretty-print `(,@(map cadr l-env) -> ,rT))
                       `(,type -> ,bodyT)))])]
                      ;[else (error "mismatch in return type" bodyT rT)])))])] ;lambda
@@ -122,6 +123,7 @@
                            thnT
                            (error 'typecheck "'if' requires matching types ~a" thnT)))]
            [else (error 'typecheck "'if' expects a Boolean ~a" cnd)])] ;if
+        [`(program ,expr) ((typecheck env ref) expr)]
         [`(,function ,args) 
          (let ([f-t ((typecheck env ref) function)])
            (match f-t
@@ -135,5 +137,8 @@
              ;07/12/16 if want to revert back to multiple args, change to
              ;(map (typecheck env ref) args) and add a few "..."s here and there
              [else (error "something went wrong in function ~a" function)]))];app
-        [`(program ,expr ...) ((typecheck env ref) expr)]
         [else (error (format "nothing matched: ~a" exp))]))))
+
+;(test-typecheck (typecheck '() '()) `(program (let ([p1 (pair #f 2)])
+;   (let ([p2 (pair (* 5 6) (if (p1 . 1) 3 4))])
+;     (p2 . 2)))))

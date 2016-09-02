@@ -20,7 +20,8 @@
   (lambda (l1 v1 lj)
     (cond
       [(equal? l1 '()) (error "no such record")]
-      [(equal? (car l1) lj) (pretty-print l1) (car v1)]
+      [(equal? (car l1) lj) ;(pretty-print l1)
+       (car v1)]
       [else (get-record-helper (cdr l1) (cdr v1) lj)])))
 
 (define lookup ;grabbed from P423 utilities.rkt

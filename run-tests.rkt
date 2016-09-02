@@ -2,7 +2,7 @@
 ;(require "typechecker.rkt")
 ;(require "interpreter.rkt")
 ;(require "utilities.rkt")
-(provide interp-tests)
+(provide interp-tests test-typecheck)
 
 (define (read-program path)
   (unless (or (string? path) (path? path))
@@ -13,17 +13,20 @@
     (call-with-input-file path
       (lambda (f)
         `(program . ,(for/list ([e (in-port read f)]) e)))))
+  (when debug-state
+    (printf "read program:\n~s\n\n" input-prog))
   input-prog)
 
-;(define debug-state #f)
+(define debug-state #f)
 
-;(define (debug label val)
-;  (if debug-state
-;      (begin
-;	(printf "~a:\n" label)
-;	(pretty-print val)
-;	(newline))
-;      (void)))
+(define (debug label val)
+  ;(if debug-state
+      (begin
+        (newline)
+	(printf "~a:\n" label)
+	(pretty-print val)
+	(newline)))
+      ;(void)))
 
 (define test-typecheck 
   (lambda (tcer exp)
@@ -59,7 +62,7 @@
 
 (define (check-passes name typechecker interp)
   (lambda (test-name)
-;   (debug "** checking for test " test-name)
+    (debug "** checking for test " test-name)
     (define input-file-name (format "tests/~a.in" test-name))
     (define program-name (format "tests/~a.rkt" test-name))
     (define sexp (read-program program-name))
