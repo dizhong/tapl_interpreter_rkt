@@ -1,7 +1,5 @@
 #lang racket
 (require "utilities.rkt")
-(require "typechecker.rkt")
-(require "run-tests.rkt")
 (provide value-of)
 
 #|
@@ -93,12 +91,3 @@
        (((value-of env ref) rator) ((value-of env ref) rand))] ;app
       [else (error (format "nothing matched: ~a" exp))]
       ))))
-
-;Run tests
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(interp-tests "interpreter"
-              (typecheck '() '())
-              (value-of (lambda (y) (error 'value-of "unbound variable ~s" y)) '())
-              "c9"
-              (range 1 9))

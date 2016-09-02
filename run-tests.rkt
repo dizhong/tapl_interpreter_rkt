@@ -1,6 +1,6 @@
 #lang racket
-;(require "typechecker.rkt")
-;(require "interpreter.rkt")
+(require "typechecker.rkt")
+(require "interpreter.rkt")
 ;(require "utilities.rkt")
 (provide interp-tests test-typecheck)
 
@@ -38,29 +38,7 @@
            [`(program ,elts ...) res]
            [else exp])))))
 
-;; The check-passes function takes a compiler name (a string), a
-;; typechecker (see below), a description of the passes (see below),
-;; and an initial interpreter to apply to the initial expression, and
-;; returns a function that takes a test name and runs the passes and
-;; the appropriate interpreters to test the correctness of all the
-;; passes. This function assumes there is a "tests" subdirectory and a
-;; file in that directory whose name is the test name followed by
-;; ".rkt". Also, there should be a matching file with the ending ".in"
-;; that provides the input for the Scheme program. If any program
-;; should not pass typechecking, then there is a file with the name
-;; number (whose contents are ignored) that ends in ".tyerr".
-;;
-;; The description of the passes is a list with one entry per pass.
-;; An entry is a list with three things: a string giving the name of
-;; the pass, the function that implements the pass (a translator from
-;; AST to AST), and a function that implements the interpreter (a
-;; function from AST to result value).
-;;
-;; The typechecker is a function of exactly one argument that EITHER
-;; raises an error using the (error) function when it encounters a
-;; type error, or returns #f when it encounters a type error. 
-
-(define (check-passes name typechecker interp)
+(define (check-tests name typechecker interp)
   (lambda (test-name)
     (debug "** checking for test " test-name)
     (define input-file-name (format "tests/~a.in" test-name))
@@ -79,15 +57,10 @@
                  (interp tsexp))]
      [else (error (format "unexpected type error raised at '~a'" test-name))])))
 
-;(define (compile passes)
-;  (let ([prog-file-name (vector-ref (current-command-line-arguments) 0)])
-;    ((compile-file passes) prog-file-name)))
-
-;; The interp-tests function takes a compiler name (a string), a
-;; typechecker (see the comment for check-passes) a description of the
-;; passes (ditto) a test family name (a string), and a list of test
-;; numbers, and runs the compiler passes and the interpreters to check
-;; whether the passes correct.
+;; The interp-tests function takes a name (a string), a typechecker
+;; (see the comment for check-tests), the interpreter, a test family
+;; name (a string), and a list of test numbers, and runs the test and
+;; the interpreter to check whether the interpreter is correct.
 ;; 
 ;; This function assumes that the subdirectory "tests" has a bunch of
 ;; Scheme programs whose names all start with the family name,
@@ -99,8 +72,18 @@
 ;; ignored) that ends in ".tyerr".
 
 (define (interp-tests name typechecker interp test-family test-nums)
-  (define checker (check-passes name typechecker interp))
+  (define checker (check-tests name typechecker interp))
   (for ([test-name (map (lambda (n) (format "~a_~a" test-family n)) 
 			test-nums)])
        (checker test-name)
        ))
+
+
+;Run tests
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(interp-tests "interpreter"
+              (typecheck '() '())
+              (value-of (lambda (y) (error 'value-of "unbound variable ~s" y)) '())
+              "c9"
+              (range 1 9))
