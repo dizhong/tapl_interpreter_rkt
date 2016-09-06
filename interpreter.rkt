@@ -55,13 +55,15 @@
          [`(inl ,v^) ((value-of env ref) `(,e1 ,v^))]
          [`(inr ,v^) ((value-of env ref) `(,e2 ,v^))])] ;sum
       ;ref is an association list, like the env in typechecker. use lookup to find stuff
-      [`(loc ,v) v] ;reference location
-      [`(ref ,t) (let ([l (gensym 'loc)])
-                   (cons (cons l ((value-of env ref) t)) ref))] ;reference creation 
-      [`(! ,t) (lookup ((value-of env ref) t) ref)] ;reference dereference
-      [`(,t1 := ,t2) (ass-ref ((value-of env ref) t1)
-                              ((value-of env ref) t2)
-                              ref)] ;reference assignment
+      [`(loc ,v) v] ;reference location ???
+      [`(ref ,t) (box t)]
+                 ;(let ([l (gensym 'loc)])
+                 ;  (cons (cons l ((value-of env ref) t)) ref))] ;reference creation 
+      [`(! ,t) (unbox t)];(lookup ((value-of env ref) t) ref)] ;reference dereference
+      [`(,t1 := ,t2) (set-box! t1 t2)]
+                     ;(ass-ref ((value-of env ref) t1)
+                     ;         ((value-of env ref) t2)
+                     ;         ref)] ;reference assignment
       [`(program ,expr) ((value-of env ref) expr)]
       [`(,rator ,rand)
        ;(pretty-print (format "rator rand: ~a" exp))

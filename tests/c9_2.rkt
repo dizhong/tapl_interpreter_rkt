@@ -1,1 +1,1 @@
-((lambda ((x : Integer)) (zero? x)) ((pair 0 1) . 2))
+((lambda ((x : Integer)) (if (zero? x) 0 279923)) ((pair 0 1) . 2))

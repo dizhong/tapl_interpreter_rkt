@@ -4,6 +4,10 @@
 ;(require "utilities.rkt")
 (provide interp-tests test-typecheck)
 
+;ripped from compiler class utilities.rkt
+
+(define standard 279923)
+
 (define (read-program path)
   (unless (or (string? path) (path? path))
     (error 'read-program "expected a string in ~s" path))
@@ -40,6 +44,7 @@
 
 (define (check-tests name typechecker interp)
   (lambda (test-name)
+    (newline) (newline)
     (debug "** checking for test " test-name)
     (define input-file-name (format "tests/~a.in" test-name))
     (define program-name (format "tests/~a.rkt" test-name))
@@ -50,11 +55,16 @@
     
     (cond
      [(and type-error-expected tsexp)
-      (error (format "expected type error in interpreter '~a', but no error raised by typechecker" name))]
+      (error (format "expected type error in interpreter '~a',
+                     but no error raised by typechecker" name))]
      [type-error-expected 'expected-type-error]
-     [tsexp  (if (file-exists? input-file-name)
-                 (with-input-from-file input-file-name (lambda () (interp tsexp)))
-                 (interp tsexp))]
+     [tsexp
+      (let ([result (if (file-exists? input-file-name)
+                        (with-input-from-file input-file-name (lambda () (interp tsexp)))
+                        (interp tsexp))])
+        (if (equal? result standard)
+            (display (format "test ~a passed" program-name))
+            (error (format "wrong result ~a; expecting 279923" result))))]
      [else (error (format "unexpected type error raised at '~a'" test-name))])))
 
 ;; The interp-tests function takes a name (a string), a typechecker

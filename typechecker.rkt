@@ -55,12 +55,13 @@
         [`(inl ,t) ((typecheck env ref) t)] ;sum really doubt if these two are right
         [`(inr ,t) ((typecheck env ref) t)] ;sum +
         [`(case ,v of (,t1 as ,sumT1) or (,t2 as ,sumT2))
+         (pretty-print ((typecheck env ref) t1))
          (let ([T0 ((typecheck env ref) v)])
-           (let ([T1 ((typecheck env ref) `(,t1 as ,sumT1))]);this is shaky
-             (let ([T2 ((typecheck env ref) `(,t2 as ,sumT2))]);this is shaky
+           (let ([T1 ((typecheck env ref) `(,t1 as ,sumT1))]);this is shaky?
+             (let ([T2 ((typecheck env ref) `(,t2 as ,sumT2))]);this is shaky?
                (if (equal? T0 `(,T1 + ,T2))
                    (last ((typecheck env ref) t1))
-                   ;both branches return same b this is shaky
+                   ;both branches return same b this is shaky?
                    (error (format "sum needs matching types ~a, ~a+~a" T0 T1 T2))))))] ;sum
         [`(loc ,v) `(Ref ,(lookup v ref))] ;ref loc
         [`(ref ,t) `(Ref ,(lookup ((typecheck env ref) t) ref))] ;ref creation +modify heap
@@ -101,7 +102,7 @@
          ((typecheck new-env ref) body)] ;let
         [`(if ,cnd ,thn ,els)
          (match ((typecheck env ref) cnd)
-           ;(pretty-print (format "if: ~a" ((typecheck env ref) cnd))) ;07/13
+           (pretty-print (format "if: ~a" ((typecheck env ref) cnd))) ;07/13
            ['Boolean (let ([thnT ((typecheck env ref) thn)]
                            [elsT ((typecheck env ref) els)])
                        (if (eq? thnT elsT)
