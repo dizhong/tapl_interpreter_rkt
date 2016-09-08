@@ -93,7 +93,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (interp-tests "interpreter"
-              (typecheck '() '())
+              (typecheck '() (hash))
               (value-of (lambda (y) (error 'value-of "unbound variable ~s" y)) '())
               "c9"
               (range 1 9))
+
+(interp-tests "interpreter"
+              (typecheck '() (hash))
+              (value-of (lambda (y) (error 'value-of "unbound variable ~s" y)) '())
+              "c13"
+              (range 1 2))

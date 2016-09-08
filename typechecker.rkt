@@ -6,6 +6,8 @@
 ;Typecheck
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;(define failure-result (error "given key not find in ref store"))
+
 (define typecheck
   (lambda (env ref)
     (lambda (exp)
@@ -55,7 +57,7 @@
         [`(inl ,t) ((typecheck env ref) t)] ;sum really doubt if these two are right
         [`(inr ,t) ((typecheck env ref) t)] ;sum +
         [`(case ,v of (,t1 as ,sumT1) or (,t2 as ,sumT2))
-         (pretty-print ((typecheck env ref) t1))
+         ;(pretty-print ((typecheck env ref) t1))
          (let ([T0 ((typecheck env ref) v)])
            (let ([T1 ((typecheck env ref) `(,t1 as ,sumT1))]);this is shaky?
              (let ([T2 ((typecheck env ref) `(,t2 as ,sumT2))]);this is shaky?
@@ -63,12 +65,13 @@
                    (last ((typecheck env ref) t1))
                    ;both branches return same b this is shaky?
                    (error (format "sum needs matching types ~a, ~a+~a" T0 T1 T2))))))] ;sum
-        [`(loc ,v) `(Ref ,(lookup v ref))] ;ref loc
-        [`(ref ,t) `(Ref ,(lookup ((typecheck env ref) t) ref))] ;ref creation +modify heap
-        [`(! ,t) `(Ref ,(lookup ((typecheck env ref) t) ref))] ;ref deref
+        [`(loc ,t) ((typecheck env ref) t)] ;ref loc
+        [`(ref ,t)
+         `(Ref ,((typecheck env ref) t))] ;ref creation + boxing
+        [`(! ,t) ((typecheck env ref) t)] ;ref deref
         [`(,t1 := ,t2)
-         (if (equal? (lookup t1 ref) (typecheck t2 ref))
-             `(Ref ,(lookup t1 ref))
+         (if (equal? ((typecheck env ref) t1) ((typecheck env ref) t2))
+             ((typecheck env ref) t1)
              (error (format "reference assignment expects matching types ~a ~a" t1 t2)))]
         ;ref ass
         [`(zero? ,e)
