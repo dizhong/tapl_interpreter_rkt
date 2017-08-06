@@ -40,14 +40,12 @@
        (match ((value-of env ref) t)
          [`(pair ,t1 ,t2) t2])] ;pair
       [`(pair ,t1 ,t2) `(pair ,((value-of env ref) t1) ,((value-of env ref) t2))] ;pair 
-      [`{record (,l1 = ,v1) ...} ;(pretty-print "got to record cf") (pretty-print exp)
+      [`{record (,l1 = ,v1) ...} 
        `{record ,@(map (lambda (x y) `(,x = ,y))
                        l1
-                       (map (lambda (x) ((value-of env ref) x)) v1))}];record creation form 
+                       (map (lambda (x) ((value-of env ref) x)) v1))}]
       [`(record-ref (,records ,lj))
-       ;(pretty-print (format "record-ref: ~a" records))
-       (get-record ((value-of env ref) records) lj)] ;record
-      ;originaly messes up `(,rator ,rand) so changed from `(,records ,lj) to current
+       (get-record ((value-of env ref) records) lj)] 
       [`(inl ,t) `(inl ,((value-of env ref) t))] ;sum creation
       [`(inr ,t) `(inr ,((value-of env ref) t))] ;sum creation
       [`(case ,v of ((inl ,e1) as ,t) or ((inr ,e2) as ,t))
