@@ -45,15 +45,12 @@
          (match ((typecheck env ref) t)
            [`(Pair ,t1 ,t2) t2])] ;pair
         [`(pair ,t1 ,t2) `(Pair ,((typecheck env ref) t1) ,((typecheck env ref) t2))] ;pair
-        [`{record (,l1 = ,v1) ...} ;based on vector in P423 07/12
-         ;(pretty-print "record cf")
+        [`{record (,l1 = ,v1) ...} 
          `{Record ,@(map (lambda (x y) `(,x = ,y))
                   l1
-                  (map (lambda (x) ((typecheck env ref) x)) v1))}] ;record cf
-        [`(record-ref (,records ,lj)) ;based on vector-ref in P423 07/12
-         ;(pretty-print (format "'record-ref: ~a"
-         ;                      (get-record ((typecheck env ref) records) lj)))
-         (get-record ((typecheck env ref) records) lj)] ;record
+                  (map (lambda (x) ((typecheck env ref) x)) v1))}] 
+        [`(record-ref (,records ,lj))
+         (get-record ((typecheck env ref) records) lj)] 
         [`(inl ,t) ((typecheck env ref) t)] ;sum really doubt if these two are right
         [`(inr ,t) ((typecheck env ref) t)] ;sum +
         [`(case ,v of (,t1 as ,sumT1) or (,t2 as ,sumT2))
